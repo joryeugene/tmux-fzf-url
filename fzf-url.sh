@@ -28,8 +28,10 @@ open_url() {
         $custom_open "$@"
     elif hash xdg-open &>/dev/null; then
         nohup xdg-open "$@"
-    elif hash open &>/dev/null; then
-        nohup open "$@"
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        for url in "$@"; do
+            osascript -e "tell application \"System Events\" to open location \"$url\""
+        done
     elif [[ -n $BROWSER ]]; then
         nohup "$BROWSER" "$@"
     fi
@@ -39,9 +41,9 @@ limit='screen'
 [[ $# -ge 2 ]] && limit=$2
 
 if [[ $limit == 'screen' ]]; then
-    content="$(tmux capture-pane -J -p -e |sed -r 's/\x1B\[[0-9;]*[mK]//g'))"
+    content="$(tmux capture-pane -J -p -e |sed -E 's/\x1B\[[0-9;]*[mK]//g')"
 else
-    content="$(tmux capture-pane -J -p -e -S -"$limit" |sed -r 's/\x1B\[[0-9;]*[mK]//g'))"
+    content="$(tmux capture-pane -J -p -e -S -"$limit" |sed -E 's/\x1B\[[0-9;]*[mK]//g')"
 fi
 
 urls=$(echo "$content" |grep -oE '(https?|ftp|file):/?//[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[-A-Za-z0-9+&@#/%=~_|]')
