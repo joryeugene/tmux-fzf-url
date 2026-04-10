@@ -38,10 +38,14 @@ open_url() {
         else
             nohup explorer.exe "$@"
         fi
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        for url in "$@"; do
+            osascript -e 'on run argv' -e 'tell application "System Events" to open location (item 1 of argv)' -e 'end run' -- "$url"
+        done
     elif hash xdg-open &>/dev/null; then
         nohup xdg-open "$@"
     elif hash open &>/dev/null; then
-        nohup open "$@"
+        open "$@"
     elif [[ -n $BROWSER ]]; then
         nohup "$BROWSER" "$@"
     fi
